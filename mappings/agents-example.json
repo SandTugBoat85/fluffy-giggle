@@ -1,0 +1,12 @@
+{
+    "agents": {
+        "1": {
+            "Name": "James Bond",
+            "TimeTastic": "007"
+        },
+        "13": {
+            "Name": "Alec Trevelyan",
+            "TimeTastic": "006"
+        }
+    }
+}

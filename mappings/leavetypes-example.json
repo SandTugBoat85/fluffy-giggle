@@ -1,0 +1,10 @@
+{
+    "leavetypes": {
+        "Holiday": {
+            "Halo_ID": "4"
+        },
+        "Sick Leave": {
+            "Halo_ID": "5"
+        }
+    }
+}
