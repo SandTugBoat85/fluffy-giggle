@@ -4,7 +4,8 @@ $mapping_path = "mappings";
 include('config/config.php');
 
 // Function to get access token for Halo API
-function getAccessToken($client_id, $client_secret, $token_url) {
+function getAccessToken($client_id, $client_secret, $token_url)
+{
     $data = [
         'client_id' => $client_id,
         'client_secret' => $client_secret,
@@ -24,13 +25,14 @@ function getAccessToken($client_id, $client_secret, $token_url) {
     }
 
     curl_close($ch);
-  //  echo $response;
+    //  echo $response;
     $responseData = json_decode($response, true);
     return $responseData['access_token'];
 }
 
 // Function to update Halo Agent Status
-function UpdateHaloStatus($access_token, $update_status_url, $new_status, $agent_id) {
+function UpdateHaloStatus($access_token, $update_status_url, $new_status, $agent_id)
+{
     echo "Function Updating Agent ID: ", $agent_id, "\n";
     echo "Function Updating Status: ", $new_status, "\n";
 
@@ -56,7 +58,7 @@ function UpdateHaloStatus($access_token, $update_status_url, $new_status, $agent
     }
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     echo "\nStatus: ", $status, "\n";
-var_dump($response);
+    var_dump($response);
     curl_close($ch);
 
     $responseData = json_decode($response, true);
@@ -64,24 +66,25 @@ var_dump($response);
         die('Error decoding JSON response: ' . json_last_error_msg());
     }
 
-    echo json_encode($responseData, JSON_PRETTY_PRINT);
+//    echo json_encode($responseData, JSON_PRETTY_PRINT);
 }
 
 // Function to translate userID to Halo Agent ID
-function getAgentID($userID, $mapping_path) {
- //   echo "\nFunction User ID: ", $userID, "\n";
+function getAgentID($userID, $mapping_path)
+{
+    //   echo "\nFunction User ID: ", $userID, "\n";
     $agentsJson = file_get_contents($mapping_path . '/agents.json');
     $agents = json_decode($agentsJson, true);
-   // echo "\nAgents: ", json_encode($agents, JSON_PRETTY_PRINT);
+    // echo "\nAgents: ", json_encode($agents, JSON_PRETTY_PRINT);
 
     foreach ($agents['agents'] as $agentID => $agent) {
-      //  echo "For each loop ran\n";
- //       echo "\nTT ID: ", $agent['TimeTastic'], "\n";
+        //  echo "For each loop ran\n";
+        //       echo "\nTT ID: ", $agent['TimeTastic'], "\n";
         if (isset($agent['TimeTastic']) && $agent['TimeTastic'] == $userID) {
-     //       echo "If statement ran\n";
-     //       echo "\nAgent ID from if: ", $agentID;
-             return $agentID;
-        //    echo "\nAgent ID In the function: ", $agentID;
+            //       echo "If statement ran\n";
+            //       echo "\nAgent ID from if: ", $agentID;
+            return $agentID;
+            //    echo "\nAgent ID In the function: ", $agentID;
 
         }
     }
@@ -101,11 +104,11 @@ curl_close($ch);
 $json = json_decode($response, true);
 
 // Handle the JSON response here
-$filteredHolidays = array_filter($json['holidays'], function($holiday) {
+$filteredHolidays = array_filter($json['holidays'], function ($holiday) {
     return in_array($holiday['leaveType'], ['Holiday', 'Sick Leave', 'Unpaid Leave', 'Maternity', 'Paternity']);
 });
 
-$filteredHolidays = array_map(function($holiday) {
+$filteredHolidays = array_map(function ($holiday) {
     return [
         'startDate' => $holiday['startDate'],
         'endDate' => $holiday['endDate'],
@@ -124,23 +127,55 @@ $filteredJson = [
 ];
 
 $prettyJson = json_encode($filteredJson, JSON_PRETTY_PRINT);
-echo $prettyJson;
+//echo $prettyJson;
 if (count($filteredHolidays) > 0) {
     echo "\nCount of People off: ", count($filteredHolidays), "\n";
+    $agentsoff = []; // Initialize the $agentsoff array
+
     foreach ($filteredHolidays as $holiday) {
-        echo "\nUser ID: ", $holiday['userID'];
-        $agent_id = getAgentID($holiday['userID'],$mapping_path); 
-        echo "\nAgent ID: ", $agent_id, "\n";
+     //   echo "\nUser ID: ", $holiday['userID'];
+        $agent_id = getAgentID($holiday['userID'], $mapping_path);
+     //   echo "\nAgent ID: ", $agent_id, "\n";
         UpdateHaloStatus($access_token, $update_status_url, "5", $agent_id);
+
+        // Add the agent ID to the $agentsoff array
+        $agentsoff[] = $agent_id;
+
         //if($agent_id == 27) {
         //    echo "Updating Agent ID: ", $agent_id, "\n";
-         // UpdateHaloStatus($access_token, $update_status_url, "5", "27");
-       // }
-        echo "Leave Type: ", $holiday['leaveType'], "\n";
+        // UpdateHaloStatus($access_token, $update_status_url, "5", "27");
+        // }
+     //   echo "Leave Type: ", $holiday['leaveType'], "\n";
     }
+
+    // Convert the $agentsoff array to JSON format
+    $agentsoffJson = json_encode($agentsoff);
+} else {
+    $agentsoffJson = json_encode([]);
 }
 
+var_dump($agentsoffJson);
 
 
+// Function to make a list of agents that aren't having status updated
+function getAgentsNotUpdated($mapping_path, $agentsoffJson, $access_token, $update_status_url)
+{
+    $agentsJson = file_get_contents($mapping_path . '/agents.json');
+    $agents = json_decode($agentsJson, true);
+    $agentsoff = json_decode($agentsoffJson, true);
 
-?>
+    $agentsNotUpdated = [];
+
+    foreach ($agents['agents'] as $agentID => $agent) {
+        if (!in_array($agentID, $agentsoff)) {
+            $agentsNotUpdated[] = $agent;
+            echo "\nAgent ID Not Off: ", $agentID, "\n";
+            UpdateHaloStatus($access_token, $update_status_url, "0", $agentID);
+        }
+    }
+
+    return json_encode($agentsNotUpdated, JSON_PRETTY_PRINT);
+}
+// Call function to update agents not on leave
+getAgentsNotUpdated($mapping_path, $agentsoffJson, $access_token, $update_status_url);
+//echo $agentsNotUpdatedJson;
