@@ -3,6 +3,9 @@
 // Enable debugging
 $debug = "none"; // Options are none, info, debug
 
+// Define when a half day is
+$half_day_start = "13"; // 24 hour format eg 10 = 10am, 13 = 1pm 
+
 // Define Halo credentials and URLs
 $client_id = 'CLIENT-ID';
 $client_secret = 'CLIENT-SECRET';

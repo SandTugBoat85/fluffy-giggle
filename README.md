@@ -41,6 +41,7 @@ For continuous synchronization, consider setting up a cron job or a scheduled ta
 ## Known issues
 1. If TimeTastic returns > 99 entries then only the first 99 are processed (This was thrown together for a 35 user busines)
 2. If a user is recorded in TimeTastic for 1/2 a day then they are treated as if they are off for the whole day.
+3. All agents are marked off with status 5 in HaloPSA
 
 ## Contribution
 Contributions are welcome! Please follow these steps:
