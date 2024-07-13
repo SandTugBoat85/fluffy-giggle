@@ -40,7 +40,7 @@ function getAccessToken($client_id, $client_secret, $token_url)
 function UpdateHaloStatus($access_token, $update_status_url, $new_status, $agent_id, $debug)
 {
     if ($debug == "info" || $debug == "debug") {
-        echo "Updating Agent ID: ", $agent_id, " With Status: ", $new_status, "\n";
+        print "Updating Agent ID: " . $agent_id . " With Status: " . $new_status . "\n";
     }
 
     $data = "[ {
