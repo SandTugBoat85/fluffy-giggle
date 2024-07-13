@@ -83,7 +83,9 @@ function getAgentID($userID, $mapping_path)
 
     foreach ($agents['agents'] as $agentID => $agent) {
         if (isset($agent['TimeTastic']) && $agent['TimeTastic'] == $userID) {
-            return $agentID;
+            if($agentID != null) {
+                return $agentID;
+            }
         }
     }
 
