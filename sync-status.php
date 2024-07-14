@@ -7,7 +7,57 @@ $mapping_path = "mappings";
 $log_path = "logs";
 $log_todays_file = $log_path . "/log-" . $today . ".log";
 $token_url = "https://$halo_instance/auth/token";
-$update_status_url = "https:/$halo_instance/api/agent";
+$update_status_url = "https://$halo_instance/api/agent";
+
+
+function fixTimes($startType, $endType, $startDate, $endDate, $half_day_start)
+{
+    $startDate = date('Y-m-d', strtotime($startDate));
+    $endDate = date('Y-m-d', strtotime($endDate));
+    if ($startType == "Afternoon") {
+        $startDate = date('Y-m-d H:i:s', strtotime($startDate . ' + ' . $half_day_start . 'hours'));
+        echo "Start: " . $startDate . "\n";
+    }
+    if ($endType == "Morning") {
+        $endDate = date('Y-m-d H:i:s', strtotime($endDate . ' + ' . $half_day_start . 'hours'));
+        echo "End: " . $endDate . "\n";
+    }
+    if ($endType == "Afternoon") {
+        $endDate = date('Y-m-d H:i:s', strtotime($endDate . ' + 23 hours 59 minutes 59 seconds'));
+        echo "The end of the day:" . $endDate;
+    }
+    return [$startDate, $endDate];
+
+}
+
+// Function to check if the agent is off at this moment
+function isAgentOff($startDate, $endDate)
+{
+    $now = date('Y-m-d H:i:s');
+    $startDate = date('Y-m-d H:i:s', strtotime($startDate));
+    $endDate = date('Y-m-d H:i:s', strtotime($endDate));
+
+    if ($startDate < $now && $now < $endDate) {
+        return true;
+    }
+}
+
+// Function to check if leave is half a day
+function partDayOff($startType, $endType, $startDate, $endDate)
+{
+    $today = date("Y-m-d") . "T00:00:00";
+    if ($startDate == $endDate) {
+        return $startType == $endType;
+    }
+
+    if ($startDate == $today && $startType == "Afternoon") {
+        return "Afternoon";
+    } elseif ($endDate == $today && $endType == "Morning") {
+        return "Morning";
+    } else {
+        return false;
+    }
+}
 
 // Function to get access token for Halo API
 function getAccessToken($client_id, $client_secret, $token_url)
@@ -83,7 +133,7 @@ function getAgentID($userID, $mapping_path)
 
     foreach ($agents['agents'] as $agentID => $agent) {
         if (isset($agent['TimeTastic']) && $agent['TimeTastic'] == $userID) {
-            if($agentID != null) {
+            if ($agentID != null) {
                 return htmlspecialchars($agentID, ENT_QUOTES, 'UTF-8');
             }
         }
@@ -116,7 +166,9 @@ $filteredHolidays = array_filter($json['holidays'], function ($holiday) use ($le
 $filteredHolidays = array_map(function ($holiday) {
     return [
         'startDate' => $holiday['startDate'],
+        'startType' => $holiday['startType'],
         'endDate' => $holiday['endDate'],
+        'endType' => $holiday['endType'],
         'leaveType' => $holiday['leaveType'],
         'userID' => $holiday['userId'],
         'userName' => $holiday['userName']
@@ -143,10 +195,13 @@ if (count($filteredHolidays) > 0) {
         // Look up the agent ID from the mapping file using the userID
         $agent_id = getAgentID($holiday['userID'], $mapping_path);
         // Call the function to update the agent status - Currently all agents are marked as Annual Leave
-        UpdateHaloStatus($access_token, $update_status_url, "5", $agent_id, $debug);
-
-        // Add the agent ID to the $agentsoff array
-        $agentsoff[] = $agent_id;
+        [$startDate,$endDate] = fixTimes($holiday['startType'], $holiday['endType'], $holiday['startDate'], $holiday['endDate'], $half_day_start);
+        $agentisoff = isAgentOff($startDate, $endDate);
+        if ($agentisoff) {
+            UpdateHaloStatus($access_token, $update_status_url, "5", $agent_id, $debug);
+            // Add the agent ID to the $agentsoff array
+            $agentsoff[] = $agent_id;
+        }
     }
 
     // Convert the $agentsoff array to JSON format
@@ -170,7 +225,6 @@ function getAgentsNotUpdated($mapping_path, $agentsoffJson, $access_token, $upda
             UpdateHaloStatus($access_token, $update_status_url, "0", $agentID, $debug);
         }
     }
-
 }
 
 // Call function to update agents not on leave to available
