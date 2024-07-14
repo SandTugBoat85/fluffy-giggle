@@ -1,5 +1,5 @@
 # Fluffy Giggle
-Fluffy Giggle is a tool designed to sync agent status between Timetastic and HaloPSA. This allows for seamless integration and synchronization of agent availability and status information across both platforms.
+Fluffy Giggle is a tool designed to sync agent status between Timetastic and HaloPSA. This allows for synchronization of agent availability from TimeTasic to HTasSA.
 
 ## Features
 
@@ -40,7 +40,7 @@ For continuous synchronization, consider setting up a cron job or a scheduled ta
 
 ## Known issues
 1. If TimeTastic returns > 99 entries then only the first 99 are processed (This was thrown together for a 35 user busines)
-2. If a user is recorded in TimeTastic for 1/2 a day then they are treated as if they are off for the whole day.
+2. ~~If a user is recorded in TimeTastic for 1/2 a day then they are treated as if they are off for the whole day.~~
 3. All agents are marked off with status 5 in HaloPSA
 
 ## Contribution
@@ -58,4 +58,4 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ## Contact
 For any questions or issues, please open an issue in the repository.
 
-Note: This project is not affiliated with Timetastic or HaloPSA. It is an independent tool thown together by someone that was asked to to facilitate the sync of status' between the two platforms **manually** each morning.
+Note: This project is not affiliated with [Timetastic](https://timetastic.co.uk/) or [HaloPSA](https://halopsa.com/). It is an independent tool thown together by someone that was asked to to facilitate the sync of status' between the two platforms **manually** each morning.
