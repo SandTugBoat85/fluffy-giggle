@@ -18,6 +18,10 @@ function fixTimes($startType, $endType, $startDate, $endDate, $half_day_start)
         $startDate = date('Y-m-d H:i:s', strtotime($startDate . ' + ' . $half_day_start . 'hours'));
         echo "Start: " . $startDate . "\n";
     }
+    if ($startType == "Morning") {
+        $startDate = date('Y-m-d H:i:s', strtotime($startDate . ' + ' . $half_day_start . 'hours'));
+        echo "Start: " . $startDate . "\n";
+    }
     if ($endType == "Morning") {
         $endDate = date('Y-m-d H:i:s', strtotime($endDate . ' + ' . $half_day_start . 'hours'));
         echo "End: " . $endDate . "\n";
@@ -27,7 +31,6 @@ function fixTimes($startType, $endType, $startDate, $endDate, $half_day_start)
         echo "The end of the day:" . $endDate;
     }
     return [$startDate, $endDate];
-
 }
 
 // Function to check if the agent is off at this moment
@@ -195,12 +198,14 @@ if (count($filteredHolidays) > 0) {
         // Look up the agent ID from the mapping file using the userID
         $agent_id = getAgentID($holiday['userID'], $mapping_path);
         // Call the function to update the agent status - Currently all agents are marked as Annual Leave
-        [$startDate,$endDate] = fixTimes($holiday['startType'], $holiday['endType'], $holiday['startDate'], $holiday['endDate'], $half_day_start);
+        [$startDate, $endDate] = fixTimes($holiday['startType'], $holiday['endType'], $holiday['startDate'], $holiday['endDate'], $half_day_start);
         $agentisoff = isAgentOff($startDate, $endDate);
         if ($agentisoff) {
-            UpdateHaloStatus($access_token, $update_status_url, "5", $agent_id, $debug);
-            // Add the agent ID to the $agentsoff array
-            $agentsoff[] = $agent_id;
+            if ($agent_id != null) {
+                UpdateHaloStatus($access_token, $update_status_url, "5", $agent_id, $debug);
+                // Add the agent ID to the $agentsoff array
+                $agentsoff[] = $agent_id;
+            }
         }
     }
 
