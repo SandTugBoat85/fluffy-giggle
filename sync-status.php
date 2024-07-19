@@ -19,7 +19,7 @@ function fixTimes($startType, $endType, $startDate, $endDate, $half_day_start)
         echo "Start: " . $startDate . "\n";
     }
     if ($startType == "Morning") {
-        $startDate = date('Y-m-d H:i:s', strtotime($startDate . ' + ' . $half_day_start . 'hours'));
+        $startDate = date('Y-m-d H:i:s', strtotime($startDate));
         echo "Start: " . $startDate . "\n";
     }
     if ($endType == "Morning") {
