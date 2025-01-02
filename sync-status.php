@@ -9,7 +9,7 @@ $log_todays_file = $log_path . "/log-" . $today . ".log";
 $token_url = "https://$halo_instance/auth/token";
 $update_status_url = "https://$halo_instance/api/agent";
 
-
+// Function to fix the times for half day leave
 function fixTimes($startType, $endType, $startDate, $endDate, $half_day_start)
 {
     $startDate = date('Y-m-d', strtotime($startDate));
